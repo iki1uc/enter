@@ -8,70 +8,87 @@ export const DOOR_DOO = {
     doo: DOO,
     door: DOOR,
 
+    // ========================================
     // Kompletter Start
+    // ========================================
     start() {
         const dooResult = this.doo.activate();
         const doorResult = this.door.openDoor();
+        const transResult = this.door.trans();
+        const warbResult = this.door.warb();
+        const kanalResult = this.door.kanal();
+        
         return {
-            doo: dooResult,
-            door: doorResult,
-            system: 'DOO/IT → DOOR verbunden'
+            status: 'ok',
+            message: '🚪 DOOR_DOO SYSTEM STARTED',
+            steps: [dooResult, doorResult, transResult, warbResult, kanalResult],
+            state: this.getStatus()
         };
     },
 
+    // ========================================
     // Kompletter Stop
+    // ========================================
     stop() {
         const doorResult = this.door.closeDoor();
         const dooResult = this.doo.deactivate();
         return {
-            door: doorResult,
-            doo: dooResult,
-            system: 'System gestoppt'
+            status: 'ok',
+            message: '⏹ DOOR_DOO SYSTEM STOPPED',
+            steps: [doorResult, dooResult]
         };
     },
 
+    // ========================================
     // Full Pipeline: DOO → DOOR → TRANS → WARB → KANAL
+    // ========================================
     fullPipeline() {
-        const steps = [];
-
         // 1. DOO aktivieren
         const doo = this.doo.activate();
-        steps.push(doo);
-
+        if (doo.status === 'error') return { error: 'DOO fehlgeschlagen', step: doo };
+        
         // 2. DOOR öffnen
         const door = this.door.openDoor();
-        steps.push(door);
-
+        if (door.status === 'error') return { error: 'DOOR fehlgeschlagen', step: door };
+        
         // 3. TRANS
         const trans = this.door.trans();
-        steps.push(trans);
-
+        if (trans.status === 'error') return { error: 'TRANS fehlgeschlagen', step: trans };
+        
         // 4. WARB
         const warb = this.door.warb();
-        steps.push(warb);
-
+        if (warb.status === 'error') return { error: 'WARB fehlgeschlagen', step: warb };
+        
         // 5. KANAL
         const kanal = this.door.kanal();
-        steps.push(kanal);
-
+        if (kanal.status === 'error') return { error: 'KANAL fehlgeschlagen', step: kanal };
+        
         // 6. API
         const api = this.door.api();
-        steps.push(api);
-
+        
         return {
-            steps: steps,
-            status: 'FULL PIPELINE COMPLETE',
-            doo: this.doo.getStatus(),
-            door: this.door.getStatus()
+            status: 'ok',
+            message: '✅ DOOR_DOO FULL PIPELINE COMPLETE',
+            steps: [doo, door, trans, warb, kanal, api],
+            state: this.getStatus()
         };
     },
 
-    // System-Status
+    // ========================================
+    // Status
+    // ========================================
     getStatus() {
         return {
             doo: this.doo.getStatus(),
             door: this.door.getStatus(),
-            connected: this.doo.active && this.door.open
+            connected: this.doo.active && this.door.open,
+            phase: this.doo.active ? 
+                (this.door.api ? 'API' : 
+                 this.door.kanal ? 'KANAL' : 
+                 this.door.warb ? 'WARB' : 
+                 this.door.transition ? 'TRANS' : 
+                 this.door.open ? 'DOOR' : 'DOO') 
+                : 'INACTIVE'
         };
     }
 };
