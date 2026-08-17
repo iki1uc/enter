@@ -2,56 +2,109 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>DOO/IT – Kontrollmodul</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOO/IT · Kontrollmodul</title>
 <style>
-    body { background:#111; color:#eee; font-family:Arial; padding:20px; }
-    button { padding:10px 20px; margin:5px; background:#333; color:#fff; border:1px solid #555; }
-    #log { margin-top:20px; padding:10px; background:#222; border:1px solid #444; }
+    body { background:#0a0a0f; color:#0f0; font-family:Consolas; padding:20px; }
+    h1 { color:#ff44ff; }
+    button { background:#111; color:#0ff; border:1px solid #333; padding:8px 16px; margin:4px; cursor:pointer; }
+    button:hover { background:#1a1a2a; border-color:#ff44ff; }
+    pre { background:#111; padding:15px; border-left:3px solid #ff44ff; }
+    .status { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin:10px 0; }
+    .box { background:#111; padding:10px; border:1px solid #333; text-align:center; }
+    .box .val { font-size:20px; font-weight:bold; }
+    .box.green .val { color:#4f4; }
+    .box.red .val { color:#f44; }
+    .box.purple .val { color:#ff44ff; }
 </style>
 </head>
 <body>
 
-<h1>DOO/IT – Kontrollmodul</h1>
-<p>Testfunktionen für Übergänge und Kontrolle.</p>
+<h1>◈ DOO/IT · Kontrollmodul</h1>
 
-<button onclick="activate()">DOO/IT aktivieren</button>
-<button onclick="transition()">Übergang erzeugen</button>
-<button onclick="tmp()">TMP Übergang</button>
+<div class="status">
+    <div class="box purple"><div>DOO</div><div class="val" id="doo-status">⛔</div></div>
+    <div class="box green"><div>CONTROL</div><div class="val" id="control-status">⛔</div></div>
+    <div class="box" style="border-color:#ffd93d;"><div>TRANSITION</div><div class="val" id="transition-status" style="color:#ffd93d;">⛔</div></div>
+    <div class="box" style="border-color:#6cf;"><div>IT</div><div class="val" id="it-status" style="color:#6cf;">⛔</div></div>
+</div>
 
-<div id="log">System bereit.</div>
+<div>
+    <button onclick="dooActivate()">◈ DOO aktivieren</button>
+    <button onclick="dooDeactivate()">◈ DOO deaktivieren</button>
+    <button onclick="controlActivate()">🎮 CONTROL</button>
+    <button onclick="transitionActivate()">🌀 TRANSITION</button>
+    <button onclick="itActivate()">💻 IT</button>
+    <button onclick="resetAll()">⟲ RESET</button>
+</div>
 
-<script>
-const System = {
-    control: false,
-    transition: false,
-    state: "idle"
-};
+<pre id="log">System bereit…</pre>
 
-function activate() {
-    System.control = true;
-    System.state = "control-ready";
-    log("DOO/IT aktiviert → Kontrolle bereit.");
-}
+<script type="module">
+import DOO from './DOO.js';
 
-function transition() {
-    if (!System.control) {
-        log("Keine Kontrolle → Übergang nicht möglich.");
-        return;
-    }
-    System.transition = true;
-    System.state = "stable-transition";
-    log("Stabiler Übergang erzeugt.");
-}
-
-function tmp() {
-    System.transition = true;
-    System.state = "tmp-transition";
-    log("TMP Übergang erzeugt → ohne Kontrolle.");
-}
+window.doo = DOO;
 
 function log(msg) {
-    document.getElementById("log").innerHTML = msg;
+    document.getElementById('log').textContent = JSON.stringify(msg, null, 2);
 }
+
+window.dooActivate = function() {
+    const result = DOO.activate();
+    document.getElementById('doo-status').textContent = '✅';
+    document.getElementById('doo-status').style.color = '#4f4';
+    log(result);
+};
+
+window.dooDeactivate = function() {
+    const result = DOO.deactivate();
+    document.getElementById('doo-status').textContent = '⛔';
+    document.getElementById('doo-status').style.color = '#f44';
+    document.getElementById('control-status').textContent = '⛔';
+    document.getElementById('control-status').style.color = '#f44';
+    document.getElementById('transition-status').textContent = '⛔';
+    document.getElementById('transition-status').style.color = '#f44';
+    document.getElementById('it-status').textContent = '⛔';
+    document.getElementById('it-status').style.color = '#f44';
+    log(result);
+};
+
+window.controlActivate = function() {
+    const result = DOO.control();
+    document.getElementById('control-status').textContent = '✅';
+    document.getElementById('control-status').style.color = '#4f4';
+    log(result);
+};
+
+window.transitionActivate = function() {
+    const result = DOO.transition();
+    document.getElementById('transition-status').textContent = '✅';
+    document.getElementById('transition-status').style.color = '#ffd93d';
+    log(result);
+};
+
+window.itActivate = function() {
+    const result = DOO.it();
+    document.getElementById('it-status').textContent = '✅';
+    document.getElementById('it-status').style.color = '#6cf';
+    log(result);
+};
+
+window.resetAll = function() {
+    const result = DOO.reset();
+    document.getElementById('doo-status').textContent = '⛔';
+    document.getElementById('doo-status').style.color = '#f44';
+    document.getElementById('control-status').textContent = '⛔';
+    document.getElementById('control-status').style.color = '#f44';
+    document.getElementById('transition-status').textContent = '⛔';
+    document.getElementById('transition-status').style.color = '#f44';
+    document.getElementById('it-status').textContent = '⛔';
+    document.getElementById('it-status').style.color = '#f44';
+    log(result);
+};
+
+// Initial
+log({ status: 'Bereit', message: 'DOO/IT geladen. Klicke auf DOO aktivieren.' });
 </script>
 
 </body>
